@@ -98,7 +98,7 @@ public class UserServices {
         git.checkout().setCreateBranch(true).setName(gitModel.getNewBranch()).call();
 
         System.out.println("Searching and removing flags...");
-        removeFlagFromFiles(Paths.get(gitModel.getTempFolder()), "Tomodel");
+        removeFlagFromFiles(Paths.get(gitModel.getTempFolder()), gitModel.getFlagToRemove(),gitModel.getFlagToReplace());
 
         System.out.println("Staging and committing changes...");
         git.add().addFilepattern(".").call();
@@ -112,7 +112,7 @@ public class UserServices {
         System.out.println("✅ Process completed successfully.");
     }
 
-    private static void removeFlagFromFiles(Path root, String flag) throws IOException {
+    private static void removeFlagFromFiles(Path root, String flag,String replace) throws IOException {
         try (Stream<Path> paths = Files.walk(root)) {
             paths.filter(Files::isRegularFile)
                     .filter(p -> p.toString().endsWith(".java"))
@@ -120,7 +120,7 @@ public class UserServices {
                         try {
                             String content = Files.readString(path);
                             if (content.contains(flag)) {
-                                String updated = content.replace(flag, "");
+                                String updated = content.replace(flag, replace);
                                 Files.writeString(path, updated);
                                 System.out.println("Flag removed from: " + path);
                             }
