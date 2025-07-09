@@ -80,7 +80,7 @@ public class UserServices {
 
         File localPath = new File(gitModel.getTempFolder());
         if (localPath.exists()) {
-            deleteDirectory(localPath);
+            deleteDir(localPath.toPath());
         }
 
         System.out.println("Cloning repository...");
@@ -124,6 +124,20 @@ public class UserServices {
                                 Files.writeString(path, updated);
                                 System.out.println("Flag removed from: " + path);
                             }
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    });
+        }
+    }
+
+    private static void deleteDir(Path path) throws IOException {
+        if (Files.exists(path)) {
+            Files.walk(path)
+                    .sorted((a, b) -> b.compareTo(a)) // delete children first
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
