@@ -7,6 +7,25 @@ public class GitModel {
     String tempFolder;
     String username;
     String token;
+    String flagToRemove;
+    String flagToReplace;
+
+
+    public String getFlagToRemove() {
+        return flagToRemove;
+    }
+
+    public void setFlagToRemove(String flagToRemove) {
+        this.flagToRemove = flagToRemove;
+    }
+
+    public String getFlagToReplace() {
+        return flagToReplace;
+    }
+
+    public void setFlagToReplace(String flagToReplace) {
+        this.flagToReplace = flagToReplace;
+    }
 
     public String getGitUrl() {
         return gitUrl;
