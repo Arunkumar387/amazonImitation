@@ -6,10 +6,7 @@ import com.example.AmazonImitation.model.UserResponseModel;
 import com.example.AmazonImitation.service.UserServices;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -32,7 +29,7 @@ public class UserController {
     }
 
     @GetMapping("/git")
-    public void completeGitProcess(GitModel gitModel) throws IOException, GitAPIException {
+    public void completeGitProcess(@RequestBody GitModel gitModel) throws IOException, GitAPIException {
         userServices.completeGitProcess(gitModel);
     }
 }
