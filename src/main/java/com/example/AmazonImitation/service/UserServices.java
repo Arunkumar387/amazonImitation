@@ -62,14 +62,14 @@ public class UserServices {
         if(userRepository.existsById(username))
         {
             User userList=  userRepository.getById(username);
-            boolean result;
+            boolean final;
             if(Objects.equals(userList.getPassword(), password)) {
-                result=true;
+                final=true;
             }
             else{
-                result=false;
+                final=false;
             }
-            return result;
+            return final;
        }
     else {
             return false;
