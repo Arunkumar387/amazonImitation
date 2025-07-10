@@ -1,13 +1,19 @@
 package com.example.AmazonImitation.service;
 
+import com.example.AmazonImitation.configuration.GitProperties;
 import com.example.AmazonImitation.entity.User;
 import com.example.AmazonImitation.model.GitModel;
 import com.example.AmazonImitation.model.UserRequestModel;
 import com.example.AmazonImitation.model.UserResponseModel;
 import com.example.AmazonImitation.repositery.UserRepository;
+import org.eclipse.jgit.api.LsRemoteCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.TransportException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import org.eclipse.jgit.api.Git;
@@ -18,13 +24,18 @@ import java.nio.file.*;
 import java.util.stream.Stream;
 import java.util.Objects;
 
-import static org.apache.tomcat.util.http.fileupload.FileUtils.deleteDirectory;
 
 @Service
 public class UserServices {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    GitProperties gitProperties;
+
+    static Logger logger = LoggerFactory.getLogger(UserServices.class);
+
 
     public UserResponseModel touserentity(UserRequestModel userRequestModel) {
         if (userRequestModel == null) {
@@ -78,38 +89,52 @@ public class UserServices {
 
     public void completeGitProcess(GitModel gitModel) throws IOException, GitAPIException {
 
+        try {
+            logger.info("Verifying access to repository...");
+            LsRemoteCommand lsRemote = Git.lsRemoteRepository()
+                    .setHeads(true)
+                    .setRemote(gitProperties.getUrl())
+                    .setCredentialsProvider(new UsernamePasswordCredentialsProvider(
+                            gitProperties.getUsername(), gitProperties.getToken()));
+
+            lsRemote.call();
+        } catch (Exception e) {
+            logger.error("Unauthorized to access repo : {} ", gitProperties.getUrl());
+            return;
+        }
+
         File localPath = new File(gitModel.getTempFolder());
         if (localPath.exists()) {
             deleteDir(localPath.toPath());
         }
 
-        System.out.println("Cloning repository...");
+        logger.info("Cloning repository...");
         Git git = Git.cloneRepository()
-                .setURI(gitModel.getGitUrl())
+                .setURI(gitProperties.getUrl())
                 .setDirectory(localPath)
-                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(gitModel.getUsername(), gitModel.getToken()))
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(gitProperties.getUsername(), gitProperties.getToken()))
                 .call();
 
-        System.out.println("Checking out base branch: " + gitModel.getBaseBranch());
+        logger.info("Checking out base branch: {} " , gitModel.getBaseBranch());
         git.checkout().setName(gitModel.getBaseBranch()).call();
         git.pull().call();
 
-        System.out.println("Creating new branch: " + gitModel.getNewBranch());
+        logger.info("Creating new branch: {}" , gitModel.getNewBranch());
         git.checkout().setCreateBranch(true).setName(gitModel.getNewBranch()).call();
 
-        System.out.println("Searching and removing flags...");
+        logger.info("Searching and removing flags...");
         removeFlagFromFiles(Paths.get(gitModel.getTempFolder()), gitModel.getFlagToRemove(),gitModel.getFlagToReplace());
 
-        System.out.println("Staging and committing changes...");
+        logger.info("Staging and committing changes...");
         git.add().addFilepattern(".").call();
         git.commit().setMessage(gitModel.getNewBranch() + ": Removed changes").call();
 
-        System.out.println("Pushing changes...");
+        logger.info("Pushing changes...");
         git.push()
-                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(gitModel.getUsername(), gitModel.getToken()))
+                .setCredentialsProvider(new UsernamePasswordCredentialsProvider(gitProperties.getUsername(), gitProperties.getToken()))
                 .call();
 
-        System.out.println("✅ Process completed successfully.");
+        logger.info("✅ Process completed successfully.");
     }
 
     private static void removeFlagFromFiles(Path root, String flag,String replace) throws IOException {
@@ -122,10 +147,10 @@ public class UserServices {
                             if (content.contains(flag)) {
                                 String updated = content.replace(flag, replace);
                                 Files.writeString(path, updated);
-                                System.out.println("Flag removed from: " + path);
+                                logger.info("Flag removed from: {} " , path);
                             }
                         } catch (IOException e) {
-                            e.printStackTrace();
+                            logger.error("Error in removing flag : {}",e.getMessage());
                         }
                     });
         }
