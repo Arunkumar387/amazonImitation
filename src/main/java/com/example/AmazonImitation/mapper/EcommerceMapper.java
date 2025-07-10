@@ -18,7 +18,7 @@ public interface EcommerceMapper {
     public CategaryResponseModel tomodel(Categary categary);
     public ProductResponseModel Tomodel(Product product);
 
-    public User touserentity(UserRequestModel userRequestModel);
+    public User toUserEntity(UserRequestModel userRequestModel);
     public UserResponseModel tousermodel(User user);
 
 }

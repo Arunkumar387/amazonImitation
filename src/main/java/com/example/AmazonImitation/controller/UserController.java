@@ -20,7 +20,7 @@ public class UserController {
     @PostMapping("/saveuser")
     public UserResponseModel saveuser(UserRequestModel userRequestModel)
     {
-        return userServices.touserentity(userRequestModel);
+        return userServices.toUserEntity(userRequestModel);
     }
 
     @PostMapping

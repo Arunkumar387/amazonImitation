@@ -37,7 +37,7 @@ public class UserServices {
     static Logger logger = LoggerFactory.getLogger(UserServices.class);
 
 
-    public UserResponseModel touserentity(UserRequestModel userRequestModel) {
+    public UserResponseModel toUserEntity(UserRequestModel userRequestModel) {
         if (userRequestModel == null) {
             return null;
         } else {
